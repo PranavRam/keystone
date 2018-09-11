@@ -33,7 +33,7 @@ module.exports = function IndexRoute (req, res) {
 		devMode: !!process.env.KEYSTONE_DEV,
 		lists: lists,
 		nav: keystone.nav,
-		orphanedLists: orphanedLists,
+		orphanedLists: [] || orphanedLists,
 		signoutUrl: keystone.get('signout url'),
 		user: {
 			id: req.user.id,
