@@ -5,10 +5,11 @@
 
 import React from 'react';
 
-import { Modal } from '../../../elemental';
+import { Modal, Button } from '../../../elemental';
 import CreateForm from './CreateForm';
 import StepZilla from 'react-stepzilla';
 import { connect } from 'react-redux';
+import ListSelect from './ListSelect';
 
 const CreateStepper = React.createClass({
 	displayName: 'CreateStepper',
@@ -57,7 +58,7 @@ const CreateStepper = React.createClass({
 							...prevState.wizardData,
 							'ad-client-contacts': data
 						},
-						step: 1
+						step: 2
 					};
 				});
 			case 2:
@@ -68,11 +69,18 @@ const CreateStepper = React.createClass({
 							...prevState.wizardData,
 							ads: data
 						},
-						step: 1
+						step: 3
+					};
+				});
+			case 3:
+				return this.setState(prevState => {
+					return {
+						...prevState,
+						step: 4
 					};
 				});
 			case 4:
-				return this.props.onCreate(data)
+				return this.props.onCreate(data);
 			default:
 				return;
 		}
@@ -104,15 +112,36 @@ const CreateStepper = React.createClass({
 			};
 
 			render() {
-				const { list, currentStep, step } = this.props;
+				const {
+					list,
+					currentStep,
+					step,
+					data,
+					hideList,
+					filters = [],
+					allowSkip
+				} = this.props;
 				return (
 					<div>
 						{currentStep === step && (
-							<CreateForm
-								data={this.props.data}
-								onCreate={this.onCreate}
-								list={list}
-							/>
+							<div>
+								<CreateForm data={data} onCreate={this.onCreate} list={list} />
+								{!hideList && (
+									<ListSelect
+										list={list}
+										onSelect={this.onCreate}
+										filters={filters}
+									/>
+								)}
+								{allowSkip && (
+									<Button
+										color="primary"
+										onClick={this.onCreate}
+									>
+										Skip
+									</Button>
+								)}
+							</div>
 						)}
 					</div>
 				);
@@ -136,6 +165,15 @@ const CreateStepper = React.createClass({
 					<Step
 						onCreate={this.onCreate}
 						data={{ company: wizardData['ad-clients'].id }}
+						filters={[
+							{
+								field: { path: 'company' },
+								value: {
+									inverted: false,
+									value: [wizardData['ad-clients'].id]
+								}
+							}
+						]}
 						currentStep={step}
 						step={1}
 						list={this.props.lists['ad-client-contacts']}
@@ -149,6 +187,15 @@ const CreateStepper = React.createClass({
 						data={{ client: wizardData['ad-clients'].id }}
 						onCreate={this.onCreate}
 						currentStep={step}
+						filters={[
+							{
+								field: { path: 'client' },
+								value: {
+									inverted: false,
+									value: [wizardData['ad-clients'].id]
+								}
+							}
+						]}
 						step={2}
 						list={this.props.lists['ads']}
 					/>
@@ -163,6 +210,8 @@ const CreateStepper = React.createClass({
 						currentStep={step}
 						step={3}
 						list={this.props.lists['contents']}
+						hideList
+						allowSkip
 					/>
 				)
 			},
@@ -172,13 +221,14 @@ const CreateStepper = React.createClass({
 					<Step
 						data={{
 							adClient: wizardData['ad-clients'].id,
-              adClientContact: wizardData['ad-client-contacts'].id,
-              ads: [wizardData['ads'].id]
+							adClientContact: wizardData['ad-client-contacts'].id,
+							ads: [wizardData['ads'].id]
 						}}
 						onCreate={this.onCreate}
 						currentStep={step}
 						step={4}
 						list={this.props.lists['campaigns']}
+						hideList
 					/>
 				)
 			}
